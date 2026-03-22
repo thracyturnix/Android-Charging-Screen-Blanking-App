@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Wireless Blanker</string>
+    <string name="service_enabled">Active</string>
+    <string name="service_disabled">Inactive</string>
+    <string name="grant_permission">Grant Overlay Permission</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="notification_channel_name">Blanking Service</string>
+    <string name="notification_title">Wireless Blanker Active</string>
+    <string name="notification_desc">Waiting for wireless charger...</string>
+    <string name="preference_service_enabled">pref_service_enabled</string>
+</resources>
