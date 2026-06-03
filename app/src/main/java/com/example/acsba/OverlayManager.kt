@@ -7,10 +7,53 @@ import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.widget.LinearLayout
+import android.widget.TextView
 
 object OverlayManager {
 
     private var overlayView: View? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
+
+    fun showChargingStatus(context: Context, isFastCharging: Boolean) {
+        if (overlayView != null) {
+            hideOverlay(context)
+        }
+
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        val message = if (isFastCharging) {
+            "⚡\nFAST CHARGING"
+        } else {
+            "CHARGING"
+        }
+
+        overlayView = LinearLayout(context).apply {
+            setBackgroundColor(Color.BLACK)
+            gravity = Gravity.CENTER
+            orientation = LinearLayout.VERTICAL
+
+            addView(TextView(context).apply {
+                text = message
+                setTextColor(Color.WHITE)
+                textSize = if (isFastCharging) 54f else 48f
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+            })
+        }
+
+        layoutParams = createLayoutParams().apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+
+        try {
+            windowManager.addView(overlayView, layoutParams)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            overlayView = null
+            layoutParams = null
+        }
+    }
 
     fun showOverlay(context: Context) {
         if (overlayView != null) return
@@ -21,7 +64,45 @@ object OverlayManager {
             setBackgroundColor(Color.BLACK)
         }
 
-        val layoutParams = WindowManager.LayoutParams(
+        layoutParams = createLayoutParams().apply {
+            screenBrightness = 0.0f
+        }
+
+        try {
+            windowManager.addView(overlayView, layoutParams)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            overlayView = null
+            layoutParams = null
+        }
+    }
+
+    fun blankOverlay(context: Context) {
+        if (overlayView == null) {
+            showOverlay(context)
+            return
+        }
+
+        overlayView?.let {
+            it.setBackgroundColor(Color.BLACK)
+            if (it is LinearLayout) {
+                it.removeAllViews()
+            }
+        }
+
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        layoutParams?.let {
+            it.screenBrightness = 0.0f
+            try {
+                windowManager.updateViewLayout(overlayView, it)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun createLayoutParams(): WindowManager.LayoutParams {
+        return WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -37,14 +118,6 @@ object OverlayManager {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.CENTER
-            // Dim backlight
-            screenBrightness = 0.0f
-        }
-
-        try {
-            windowManager.addView(overlayView, layoutParams)
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -57,6 +130,7 @@ object OverlayManager {
                 e.printStackTrace()
             }
             overlayView = null
+            layoutParams = null
         }
     }
 }
