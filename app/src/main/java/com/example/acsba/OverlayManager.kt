@@ -14,33 +14,30 @@ object OverlayManager {
 
     private var overlayView: View? = null
     private var layoutParams: WindowManager.LayoutParams? = null
+    private var statusTextView: TextView? = null
 
     fun showChargingStatus(context: Context, isFastCharging: Boolean) {
-        if (overlayView != null) {
-            hideOverlay(context)
+        if (overlayView != null && statusTextView != null) {
+            updateChargingStatus(isFastCharging)
+            return
         }
 
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        val message = if (isFastCharging) {
-            "⚡\nFAST CHARGING"
-        } else {
-            "CHARGING"
-        }
 
         overlayView = LinearLayout(context).apply {
             setBackgroundColor(Color.BLACK)
             gravity = Gravity.CENTER
             orientation = LinearLayout.VERTICAL
 
-            addView(TextView(context).apply {
-                text = message
+            statusTextView = TextView(context).apply {
                 setTextColor(Color.WHITE)
-                textSize = if (isFastCharging) 54f else 48f
                 gravity = Gravity.CENTER
                 includeFontPadding = false
-            })
+            }
+            addView(statusTextView)
         }
+
+        updateChargingStatus(isFastCharging)
 
         layoutParams = createLayoutParams().apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
@@ -52,6 +49,18 @@ object OverlayManager {
             e.printStackTrace()
             overlayView = null
             layoutParams = null
+            statusTextView = null
+        }
+    }
+
+    fun updateChargingStatus(isFastCharging: Boolean) {
+        statusTextView?.apply {
+            text = if (isFastCharging) {
+                "⚡\nFAST CHARGING"
+            } else {
+                "CHARGING"
+            }
+            textSize = if (isFastCharging) 54f else 48f
         }
     }
 
@@ -74,6 +83,7 @@ object OverlayManager {
             e.printStackTrace()
             overlayView = null
             layoutParams = null
+            statusTextView = null
         }
     }
 
@@ -89,6 +99,7 @@ object OverlayManager {
                 it.removeAllViews()
             }
         }
+        statusTextView = null
 
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         layoutParams?.let {
@@ -102,7 +113,7 @@ object OverlayManager {
     }
 
     private fun createLayoutParams(): WindowManager.LayoutParams {
-        return WindowManager.LayoutParams(
+        val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -119,6 +130,19 @@ object OverlayManager {
         ).apply {
             gravity = Gravity.CENTER
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            layoutParams.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            layoutParams.fitInsetsTypes = 0
+            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+            layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT
+        }
+
+        return layoutParams
     }
 
     fun hideOverlay(context: Context) {
@@ -131,6 +155,7 @@ object OverlayManager {
             }
             overlayView = null
             layoutParams = null
+            statusTextView = null
         }
     }
 }
