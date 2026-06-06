@@ -55,12 +55,8 @@ object OverlayManager {
 
     fun updateChargingStatus(isFastCharging: Boolean) {
         statusTextView?.apply {
-            text = if (isFastCharging) {
-                "⚡\nFAST CHARGING"
-            } else {
-                "CHARGING"
-            }
-            textSize = if (isFastCharging) 54f else 48f
+            text = if (isFastCharging) "fast" else "charging"
+            textSize = 54f
         }
     }
 
